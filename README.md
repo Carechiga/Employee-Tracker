@@ -27,6 +27,8 @@ In order to run this application you will need to install inquierer and mysql2, 
 
 This is a command line application that will ask you a few questions on what you would like to do.  Follow the instructions and answer the questions to the best of you ability.
 
+watch this video to see more: https://youtu.be/CSggEKyGiH8
+
 ## Credits
 
 
