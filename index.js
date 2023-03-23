@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 inquirer.registerPrompt("loop", require("inquirer-loop")(inquirer));
 const mysql = require('mysql2');
+const cTable = require('console.table');
 
 
 //create connection to database using this connection object
@@ -27,7 +28,7 @@ inquirer.prompt([
     switch(action){
         case "View all employees":
             console.log("Showing all employees...");
-            connection.query('SELECT * FROM employee', (employee, err) => {
+            connection.query('SELECT * FROM employee', (err, employee) => {
                 if(err) {console.log(err)};
                 console.table(employee);
             });
@@ -43,7 +44,7 @@ inquirer.prompt([
             break;
         case "View all roles":
             console.log("Showing all roles...");
-            connection.query('SELECT * FROM roles', (roles, err) => {
+            connection.query('SELECT * FROM roles', (err, roles) => {
                 if(err) {console.log(err)};
                 console.table(roles);
             });
@@ -55,7 +56,7 @@ inquirer.prompt([
             break;
         case "View all departments":
             console.log("Showing all departments...");
-            connection.query('SELECT * FROM departments', (departments, err) => {
+            connection.query('SELECT * FROM departments', (err, departments) => {
                 if(err) {console.log(err)};
                 console.table(departments);
             });
@@ -300,11 +301,12 @@ const employeesByDepartment = () => {
         },
     ])
     .then(department => {
-        connection.query(`SELECT employee.first_name, employee.last_name, role_id 
+        //must use INNER JOIN to get connect employee table to roles table and then the departments table
+        connection.query(`SELECT employee.first_name, employee.last_name, departments.name AS Department
         FROM ((employee 
             INNER JOIN roles ON employee.role_id = roles.id)
             INNER JOIN departments ON roles.department_id = departments.id) 
-            WHERE department_id = ${department.department_id}`, (employee, err) => {
+            WHERE department_id = ${department.department_id}`, (err, employee) => {
             if(err) {console.log(err)}
             console.table(employee);
             employeeTrackerChoices();})
@@ -320,7 +322,7 @@ const employeesByManager = () => {
         }
     ])
     .then(manager => {
-        connection.query(`SELECT * FROM employee WHERE manager_id = ${manager.manager_id}`, (employee, err) => {
+        connection.query(`SELECT * FROM employee WHERE manager_id = ${manager.manager_id}`, (err, employee) => {
             if(err) {console.log(err)};
             console.table(employee);
             employeeTrackerChoices();})
@@ -336,14 +338,17 @@ const viewBudget = () => {
         }
     ])
     .then(department => {
-        connection.query(`SELECT SUM(Salary) 
+        //'AS' has the column name alias set to Budget for ease of viewing
+        connection.query(`SELECT departments.name AS Department, SUM(Salary) AS Budget 
         FROM ((employee 
             INNER JOIN roles ON employee.role_id = roles.id)
             INNER JOIN departments ON roles.department_id = departments.id) 
-            WHERE department_id = ${department.department_id}`, (employee, err) => {
+            WHERE department_id = ${department.department_id}`, (err, employee) => {
             if(err) {console.log(err)}
             console.table(employee);
             employeeTrackerChoices();})
     })
 }
+
+//initializes initial inquiry
 employeeTrackerChoices();
