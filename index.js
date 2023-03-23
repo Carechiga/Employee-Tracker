@@ -5,10 +5,11 @@ const cTable = require('console.table');
 
 
 //create connection to database using this connection object
+//password removed for security
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '2019Millie4sql',
+    password: '',
     database:'employee_db'
 });
 
@@ -30,6 +31,7 @@ inquirer.prompt([
             console.log("Showing all employees...");
             connection.query('SELECT * FROM employee', (err, employee) => {
                 if(err) {console.log(err)};
+                console.log('\n');
                 console.table(employee);
             });
             employeeTrackerChoices();
@@ -46,6 +48,7 @@ inquirer.prompt([
             console.log("Showing all roles...");
             connection.query('SELECT * FROM roles', (err, roles) => {
                 if(err) {console.log(err)};
+                console.log('\n');
                 console.table(roles);
             });
             employeeTrackerChoices();
@@ -58,6 +61,7 @@ inquirer.prompt([
             console.log("Showing all departments...");
             connection.query('SELECT * FROM departments', (err, departments) => {
                 if(err) {console.log(err)};
+                console.log('\n');
                 console.table(departments);
             });
             employeeTrackerChoices();
@@ -66,7 +70,7 @@ inquirer.prompt([
             console.log("Adding department...");
             addDepartment();
             break;
-        case "Update employee Manager":
+        case "Update employee manager":
             console.log("Updating employee managers...");
             updateManager();
             break;
@@ -253,12 +257,13 @@ const deleteEmployee = () => {
         }
      ])
         .then(employee => {
-            connection.employee.destroy({
-                where:{ id: `${employee.id}`},
-            });
+            connection.query(`DELETE FROM employee WHERE id = ${employee.id}`)
             employeeTrackerChoices();
-})
-}
+        }
+            
+        );
+    }  
+
 
 const deleteRole = () => {
 inquirer.prompt([
@@ -268,13 +273,13 @@ inquirer.prompt([
         message: 'What is the id of the role you want to delete?'
     }
  ])
-    .then(role => {
-        connection.roles.destroy({
-            where:{ id: `${role.id}`},
-        });
-        employeeTrackerChoices();
-})
+ .then(role => {
+    connection.query(`DELETE FROM roles WHERE id = ${role.id}`)
+    employeeTrackerChoices();
 }
+    
+);
+} 
 
 const deleteDepartment = () => {
     inquirer.prompt([
@@ -284,13 +289,12 @@ const deleteDepartment = () => {
             message: 'What is the id of the department you want to delete?'
         }
      ])
-        .then(department => {
-            connection.departments.destroy({
-                where:{ id: `${department.id}`},
-            });
-            employeeTrackerChoices();
-    })
+     .then(department => {
+        connection.query(`DELETE FROM departments WHERE id = ${department.id}`)
+        employeeTrackerChoices();
     }
+ );
+} 
 
 const employeesByDepartment = () => {
     inquirer.prompt([
@@ -308,6 +312,7 @@ const employeesByDepartment = () => {
             INNER JOIN departments ON roles.department_id = departments.id) 
             WHERE department_id = ${department.department_id}`, (err, employee) => {
             if(err) {console.log(err)}
+            console.log('\n');
             console.table(employee);
             employeeTrackerChoices();})
     })
@@ -324,6 +329,7 @@ const employeesByManager = () => {
     .then(manager => {
         connection.query(`SELECT * FROM employee WHERE manager_id = ${manager.manager_id}`, (err, employee) => {
             if(err) {console.log(err)};
+            console.log('\n');
             console.table(employee);
             employeeTrackerChoices();})
      });
@@ -345,10 +351,10 @@ const viewBudget = () => {
             INNER JOIN departments ON roles.department_id = departments.id) 
             WHERE department_id = ${department.department_id}`, (err, employee) => {
             if(err) {console.log(err)}
+            console.log('\n');
             console.table(employee);
             employeeTrackerChoices();})
     })
 }
 
-//initializes initial inquiry
 employeeTrackerChoices();
