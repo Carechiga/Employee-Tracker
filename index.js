@@ -17,7 +17,7 @@ inquirer.prompt([
        type: "list",
        name: "action",
        message: "What would you like to do?",
-       choices: ["View all employees", "Add employee", "Update employee role", "View all roles", "Add role", "View all departments", "Add department", "Update employee manager", "View employees by manager", "View employees by department", "Delete employee", "Delete department", "Delete role", "View total utilized budget", "Quit"], 
+       choices: ["View all employees", "Add employee", "Update employee role", "View all roles", "Add role", "View all departments", "Add department", "Update employee manager", "View employees by manager", "View employees by department", "Delete employee", "Delete department", "Delete role", "View budget by department", "Quit"], 
     }
 ])
 .then((data => {
@@ -89,6 +89,10 @@ inquirer.prompt([
             console.log("Deleting role...");
             deleteRole();
             break;
+        case "View budget by department":
+            console.log("Retrieving department budget...");
+            viewBudget();
+            break;
         case "Quit":
             console.log("Exiting application...");
             connection.end();
@@ -112,7 +116,7 @@ const addEmployee = () => {
     {
         type: 'input',
         name: 'role_id',
-        message: "What is the employee's Role?"
+        message: "What is the employee's Role id number?"
     },
     {
         type: 'list',
@@ -296,12 +300,17 @@ const employeesByDepartment = () => {
         },
     ])
     .then(department => {
-        connection.query(`SELECT * FROM employee WHERE role_id.department_id = ${department.department_id}`, (employee, err) => {
+        connection.query(`SELECT employee.first_name, employee.last_name, role_id 
+        FROM ((employee 
+            INNER JOIN roles ON employee.role_id = roles.id)
+            INNER JOIN departments ON roles.department_id = departments.id) 
+            WHERE department_id = ${department.department_id}`, (employee, err) => {
             if(err) {console.log(err)}
             console.table(employee);
             employeeTrackerChoices();})
     })
 }  
+
 const employeesByManager = () => {
     inquirer.prompt([
         {
@@ -318,4 +327,23 @@ const employeesByManager = () => {
      });
 }   
  
+const viewBudget = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'department_id',
+            message: "Which department's budget would you like to view?(Please enter the department id)"
+        }
+    ])
+    .then(department => {
+        connection.query(`SELECT SUM(Salary) 
+        FROM ((employee 
+            INNER JOIN roles ON employee.role_id = roles.id)
+            INNER JOIN departments ON roles.department_id = departments.id) 
+            WHERE department_id = ${department.department_id}`, (employee, err) => {
+            if(err) {console.log(err)}
+            console.table(employee);
+            employeeTrackerChoices();})
+    })
+}
 employeeTrackerChoices();
